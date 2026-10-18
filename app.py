@@ -30,6 +30,9 @@ app = Dash(
 )
 app.title = "Treasury Lab — Working Capital & Cash Flow Forecasting"
 
+# WSGI entry point for production servers (gunicorn app:server)
+server = app.server
+
 # Sidebar information architecture: group the six pages into
 # workflow sections so the nav reads as Analyze -> Compare -> Report.
 NAV_SECTIONS = [
@@ -369,4 +372,4 @@ if __name__ == "__main__":
     # Default to debug=False for security (no debugger exposed on 0.0.0.0).
     # Set FLASK_ENV=development to enable debug mode for local development.
     debug_mode = os.environ.get("FLASK_ENV") == "development"
-    app.run(host='0.0.0.0', port=8050, debug=debug_mode, dev_tools_ui=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8050)), debug=debug_mode, dev_tools_ui=False)

@@ -4,6 +4,10 @@
 
 A Dash/Plotly analytics dashboard that forecasts working capital and cash flow needs using real public-company financial statements from Yahoo Finance, and stress-tests those forecasts under Best / Base / Worst case scenarios.
 
+**Live demo:** [https://treasurylab.onrender.com](https://treasurylab.onrender.com) (free tier — first load after inactivity may take ~60s to wake up)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Mohaiminul2/TreasuryLab)
+
 ## About
 
 Finance and treasury teams routinely need to answer: *"If our collection period slips, our supplier terms tighten, or demand slows, do we have enough cash?"* This tool operationalizes that question — pulling three financial statements (Income Statement, Balance Sheet, Cash Flow Statement) for a company, computing its working capital cycle (DSO, DPO, DIO, Cash Conversion Cycle), and projecting 12 months forward under configurable and fixed scenario assumptions, flagging any projected cash shortfall. It demonstrates the intersection of MBA-level financial analysis and applied data engineering — not a stock-prediction tool, but a decision-support tool in the FP&A / treasury tradition.
