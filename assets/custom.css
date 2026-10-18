@@ -182,21 +182,20 @@ body:has(#wc-app[data-theme="light"]) { background-color: #F1F5F9; }
   padding: 2px 6px 10px;
   margin-bottom: 14px;
 }
-.wc-brand-tile {
+.wc-logo {
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
   border-radius: var(--wc-radius-sm);
-  background: var(--wc-primary);
+  object-fit: contain;
+  display: none;
 }
-#wc-app[data-theme="dark"] .wc-brand-tile { color: #0F172A; }
-#wc-app[data-theme="light"] .wc-brand-tile { color: #FFFFFF; }
+/* Theme swap: amber shield on dark, blue shield on light. The offcanvas
+   drawer portals outside #wc-app, so it carries its own wc-theme-* scope. */
+#wc-app[data-theme="dark"] .wc-logo--dark,
+.wc-offcanvas.wc-theme-dark .wc-logo--dark { display: block; }
+#wc-app[data-theme="light"] .wc-logo--light,
+.wc-offcanvas.wc-theme-light .wc-logo--light { display: block; }
 .wc-brand {
   font-weight: 700;
   font-size: 0.92rem;
@@ -405,8 +404,9 @@ body:has(#wc-app[data-theme="light"]) { background-color: #F1F5F9; }
   min-height: unset;
   padding: 4px 2px;
 }
-.wc-offcanvas .wc-brand-tile { color: #FFFFFF; }
-.wc-offcanvas.wc-theme-dark .wc-brand-tile { color: #0F172A; }
+.wc-offcanvas .wc-logo { display: none; }
+.wc-offcanvas.wc-theme-dark .wc-logo--dark { display: block; }
+.wc-offcanvas.wc-theme-light .wc-logo--light { display: block; }
 /* Offcanvas header/title is sparse — hide the empty close button gap */
 .wc-offcanvas .offcanvas-header {
   padding: 10px 14px 0;

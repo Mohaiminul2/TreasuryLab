@@ -52,9 +52,22 @@ def _nav_link(page, num: int):
 
 
 def _brand_row():
+    # Shield logo from assets/branding/; the dark (amber) and light (blue)
+    # variants are both rendered and swapped via CSS so the logo follows
+    # the theme toggle without an extra callback. Covers the mobile drawer
+    # too (wc-theme-* scopes), which portals outside #wc-app.
     return html.Div(
         [
-            html.Div("TL", className="wc-brand-tile"),
+            html.Img(
+                src="/assets/branding/treasurylab-shield.svg",
+                alt="TreasuryLab logo",
+                className="wc-logo wc-logo--dark",
+            ),
+            html.Img(
+                src="/assets/branding/treasurylab-shield-light.svg",
+                alt="TreasuryLab logo",
+                className="wc-logo wc-logo--light",
+            ),
             html.Div(
                 [
                     html.Div("TreasuryLab", className="wc-brand"),
@@ -183,6 +196,12 @@ mobile_drawer = _build_mobile_drawer()
 
 app.layout = html.Div(
     [
+        # Brand favicon (browser tab) — 32px shield from the brand kit
+        html.Link(
+            rel="icon",
+            type="image/png",
+            href="/assets/branding/treasurylab-shield-32px.png",
+        ),
         # Persisted UI state (local storage survives reloads + navigation)
         dcc.Store(id="store-theme", storage_type="local", data=DARK),
         dcc.Store(id="store-sidebar", storage_type="local", data={"collapsed": False}),
