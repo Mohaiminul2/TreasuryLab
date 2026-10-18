@@ -1,0 +1,1150 @@
+/* Document backdrop — matches #wc-app in both themes so the body never
+   paints DARKLY's #222 (or white) at the edges, during overscroll, or in
+   the pre-hydration frame. Dark is the app default; light overrides when
+   the theme is active. #wc-app lives under #react-entry-point, so this
+   uses a descendant :has() (not a direct child). */
+html body {
+  margin: 0;
+  background-color: #0F172A;
+}
+body:has(#wc-app[data-theme="light"]) { background-color: #F1F5F9; }
+
+/* ==========================================================================
+   Design Tokens (Finance Dashboard)
+   ========================================================================== */
+:root {
+  /* Dark theme (default) — slate surfaces + amber primary.
+     Tokens are read via var(--wc-*, #fallback) so a missed token never
+     blanks a rule; the #fallback equals the dark token so the dark
+     default is robust even pre-theme-attribute. */
+  --wc-bg: #0F172A;
+  --wc-surface: #1E293B;
+  --wc-surface-2: #0F172A;
+  --wc-text: #F8FAFC;
+  --wc-muted: #94A3B8;
+  --wc-border: #334155;
+  --wc-primary: #F59E0B;
+  --wc-success: #2ECC71;
+  --wc-danger: #EF4444;
+  --wc-info: #3498DB;
+
+  /* Radius */
+  --wc-radius-xs: 2px;
+  --wc-radius-sm: 4px;
+  --wc-radius: 8px;
+  --wc-radius-lg: 12px;
+  --wc-radius-xl: 16px;
+  --wc-radius-pill: 9999px;
+
+  /* Shadows/Elevation */
+  --wc-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --wc-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
+  --wc-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --wc-shadow-md: 0 6px 8px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --wc-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --wc-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+
+  /* Spacing */
+  --wc-gap-xxxs: 2px;
+  --wc-gap-xxs: 4px;
+  --wc-gap-xs: 6px;
+  --wc-gap-sm: 8px;
+  --wc-gap-half: 8px;   /* half-step alias used across cards/tables */
+  --wc-gap: 12px;
+  --wc-gap-md: 16px;
+  --wc-gap-double: 24px; /* double-step alias used by empty states */
+  --wc-gap-lg: 20px;
+  --wc-gap-xl: 24px;
+  --wc-gap-xxl: 28px;
+  --wc-gap-xxxl: 32px;
+
+  /* Status colors (semantic, theme-aware) */
+  --wc-status-ok: var(--wc-success);
+  --wc-status-warn: #FBBF24; /* amber-400 */
+  --wc-status-bad: var(--wc-danger);
+  --wc-status-info: var(--wc-info);
+
+  /* Table specific */
+  --wc-table-header-bg: var(--wc-surface-2);
+  --wc-table-header-color: var(--wc-muted);
+  --wc-table-border-color: var(--wc-border);
+  --wc-table-hover-bg: color-mix(in srgb, var(--wc-surface-2) 70%, transparent);
+
+  /* Transitions */
+  --wc-transition-fast: 150ms ease;
+  --wc-transition-normal: 250ms ease;
+  --wc-transition-slow: 350ms ease;
+
+  /* Opacities */
+  --wc-opacity-5: 0.05;
+  --wc-opacity-10: 0.10;
+  --wc-opacity-20: 0.20;
+  --wc-opacity-30: 0.30;
+}
+
+/* Light theme token overrides — scoped to [data-theme="light"] on the
+   app root so every component flips together (cards, sidebar, tables,
+   banners, chips, dropdowns). NOTE: selector is #wc-app (hyphen), the
+   dash version was a typo that silently never matched. */
+#wc-app[data-theme="light"] {
+  --wc-bg: #F1F5F9;
+  --wc-surface: #FFFFFF;
+  --wc-surface-2: #F1F5F9;
+  --wc-text: #0F172A;
+  --wc-muted: #64748B;
+  --wc-border: #CBD5E1;
+  --wc-primary: #1E40AF;
+  --wc-success: #15803D;
+  --wc-danger: #B91C1C;
+  --wc-info: #0369A1;
+  --wc-status-warn: #B45309;
+}
+
+/* Page content backdrop + smooth page swap.
+   The wrapper around dash.page_container keeps the theme bg painted at
+   min-height while Dash unmounts/remounts pages, and the keyed children
+   fade in (opacity + translateY) so the swap reads as one motion. */
+.wc-page-content {
+  min-height: 100vh;
+  background: transparent;
+}
+#wc-app[data-theme="dark"] .wc-page-content,
+#wc-app[data-theme="light"] .wc-page-content {
+  animation: wcPageFadeIn 220ms ease-out both;
+}
+@keyframes wcPageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-page-content { animation: none !important; }
+}
+
+#wc-app {
+  min-height: 100vh;
+}
+
+/* Typography — Inter everywhere (chart text uses the same stack via
+   CHART_FONT in pages/_ui.py); tabular numerics keep financial columns
+   aligned. Base color/inheritance: DARKLY hardcodes white body text,
+   which is invisible in light mode — setting it here means any text
+   that does not declare its own color inherits the theme token. */
+#wc-app {
+  font-family: Inter, "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "tnum" 1;
+  color: var(--wc-text);
+}
+#wc-app .font-monospace,
+#wc-app code {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+
+/* Sidebar — compact dense (density 8/10) */
+.wc-sidebar {
+  min-height: 100vh;
+  border-right: 1px solid var(--wc-border);
+  background: var(--wc-surface);
+  padding: 0;
+}
+/* Desktop sidebar width: +32px over the 2-col (16.66%) grid slot for
+   more nav-label breathing room. The *visible* sidebar carries d-lg-block
+   (app.py's _apply_sidebar keeps it only while expanded); when collapsed
+   the sidebar has just d-none, so neither rule matches and the content
+   column returns to its full col-lg-12 width. The two calc() widths sum
+   to exactly 100%, so the flex row never overflows. lg breakpoint =
+   992px, so this hits ~1366px+ laptops: sidebar 228px -> 260px. */
+@media (min-width: 992px) {
+  #wc-app .row > #sidebar-col.wc-sidebar.d-lg-block {
+    width: calc(16.6667% + 32px);
+    flex: 0 0 auto;
+    max-width: none;
+  }
+  #wc-app .row > #sidebar-col.wc-sidebar.d-lg-block ~ #content-col {
+    width: calc(83.3333% - 32px);
+    flex: 0 0 auto;
+    max-width: none;
+  }
+}
+.wc-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 10px 8px 8px;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+}
+/* Brand block — compact */
+.wc-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px 10px;
+  margin-bottom: 14px;
+}
+.wc-brand-tile {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  border-radius: var(--wc-radius-sm);
+  background: var(--wc-primary);
+}
+#wc-app[data-theme="dark"] .wc-brand-tile { color: #0F172A; }
+#wc-app[data-theme="light"] .wc-brand-tile { color: #FFFFFF; }
+.wc-brand {
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.15px;
+  line-height: 1.2;
+  margin: 0;
+}
+.wc-brand-sub {
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+}
+/* Grouped nav — modern dashboard cards (Bento) for Analyze / Compare / Report */
+.wc-nav-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.wc-nav-group {
+  background: var(--wc-surface-2);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius);
+  padding: 6px 6px 8px;
+  box-shadow: var(--wc-shadow-xs);
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.wc-nav-group:hover {
+  border-color: color-mix(in srgb, var(--wc-border) 88%, var(--wc-text) 12%);
+  box-shadow: var(--wc-shadow-sm);
+  transform: translateY(-1px);
+}
+#wc-app[data-theme="light"] .wc-nav-group {
+  background: #F8FAFC;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04);
+}
+#wc-app[data-theme="light"] .wc-nav-group:hover {
+  box-shadow: 0 4px 16px rgba(15,23,42,0.07);
+}
+.wc-nav-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  padding: 4px 4px 6px;
+  margin: 0;
+  line-height: 1;
+  border: none;
+}
+.wc-section-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  line-height: 1;
+  border-radius: var(--wc-radius-sm);
+  background: color-mix(in srgb, var(--wc-surface) 82%, var(--wc-text) 8%);
+  border: 1px solid var(--wc-border);
+}
+/* Vertical alignment for nav list (countries/pages) */
+.wc-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0 2px;
+  gap: 2px;
+}
+/* Nav links appear in BOTH the desktop sidebar and the mobile drawer —
+   scope by .wc-link (not .wc-sidebar) so drawer links get the same
+   treatment.
+   color/hover must be set explicitly: the app loads DARKLY, whose
+   .nav-link is hardcoded white (--bs-nav-link-color:#fff), which is
+   invisible on the light theme's white surface. */
+.nav-link.wc-link {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 8px;
+  border-radius: var(--wc-radius-sm);
+  padding: 6px 10px 6px 8px;
+  font-weight: 500;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: var(--wc-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+}
+/* Hover: subtle lift + explicit hover color (DARKLY's hover token is
+   also white-based) */
+.nav-link.wc-link:hover,
+.nav-link.wc-link:focus {
+  color: var(--wc-text);
+  background: color-mix(in srgb, var(--wc-surface) 90%, transparent);
+  transform: translateY(-1px);
+  transition: background 150ms ease, transform 150ms ease, color 150ms ease;
+}
+/* Number chip — compact */
+.wc-link-num {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 50%;
+  background: var(--wc-surface-2);
+  border: 1px solid var(--wc-border);
+  color: var(--wc-muted);
+}
+/* Active state — must fully override DARKLY's .nav-pills active styling
+   (white on steel-blue #375a7f) with our accent treatment. The explicit
+   color/background beat Bootstrap's higher-specificity pill rules via
+   !important on the DARKLY wins we cannot out-specify. */
+.nav-link.wc-link.active,
+.nav-link.wc-link[aria-current="true"] {
+  color: var(--wc-text) !important;
+  border-left-color: var(--wc-primary);
+  background: color-mix(in srgb, var(--wc-primary) 12%, transparent) !important;
+}
+.nav-link.wc-link.active .wc-link-num,
+.nav-link.wc-link[aria-current="true"] .wc-link-num {
+  background: var(--wc-primary);
+  border-color: var(--wc-primary);
+  color: #0F172A;
+}
+/* Light theme: active chip text needs white on the blue primary */
+#wc-app[data-theme="light"] .nav-link.wc-link.active .wc-link-num,
+#wc-app[data-theme="light"] .nav-link.wc-link[aria-current="true"] .wc-link-num {
+  color: #FFFFFF;
+}
+
+/* Sidebar footer (theme toggle + note) — flexbox column pushes it to
+   the bottom via margin-top: auto on .wc-sidebar-inner's footer. */
+.wc-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--wc-border);
+  padding-top: 10px;
+}
+.wc-side-note {
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  text-align: center;
+}
+
+/* Topbar — mobile hamburger + desktop collapse row above the content */
+.wc-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-height: 30px;
+}
+
+/* Mobile drawer (Offcanvas) — can portal outside #wc-app, so it carries
+   its own theme class (wc-theme-dark / wc-theme-light) applied by the
+   app.py callback; re-declare the full token set per class. */
+.wc-offcanvas.wc-theme-dark {
+  --wc-bg: #0F172A;
+  --wc-surface: #1E293B;
+  --wc-surface-2: #0F172A;
+  --wc-text: #F8FAFC;
+  --wc-muted: #94A3B8;
+  --wc-border: #334155;
+  --wc-primary: #F59E0B;
+  --wc-success: #2ECC71;
+  --wc-danger: #EF4444;
+  --wc-info: #3498DB;
+  --wc-status-warn: #FBBF24;
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+.wc-offcanvas.wc-theme-light {
+  --wc-bg: #F1F5F9;
+  --wc-surface: #FFFFFF;
+  --wc-surface-2: #F1F5F9;
+  --wc-text: #0F172A;
+  --wc-muted: #64748B;
+  --wc-border: #CBD5E1;
+  --wc-primary: #1E40AF;
+  --wc-success: #15803D;
+  --wc-danger: #B91C1C;
+  --wc-info: #0369A1;
+  --wc-status-warn: #B45309;
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+/* Drawer inner layout mirrors the desktop sidebar */
+.wc-offcanvas .wc-sidebar-inner {
+  min-height: unset;
+  padding: 4px 2px;
+}
+.wc-offcanvas .wc-brand-tile { color: #FFFFFF; }
+.wc-offcanvas.wc-theme-dark .wc-brand-tile { color: #0F172A; }
+/* Offcanvas header/title is sparse — hide the empty close button gap */
+.wc-offcanvas .offcanvas-header {
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--wc-border);
+}
+
+
+/* Status banners — unified SHORTFALL RISK / OK treatment (risk reads as
+   a filled danger pill; ok as a quiet success line). */
+.wc-banner {
+  display: flex;
+  align-items: baseline;
+  border-radius: var(--wc-radius);
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+.wc-banner-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+  vertical-align: 1px;
+  margin-right: 6px;
+}
+.wc-banner--ok {
+  background: color-mix(in srgb, var(--wc-status-ok) 10%, transparent);
+  border-color: color-mix(in srgb, var(--wc-status-ok) 30%, transparent);
+  color: var(--wc-text);
+}
+.wc-banner--ok .wc-banner-icon--ok { color: var(--wc-status-ok); }
+.wc-banner--ok .wc-banner-head--ok { color: var(--wc-status-ok); }
+#wc-app[data-theme="light"] .wc-banner--ok {
+  background: color-mix(in srgb, #15803D 8%, transparent);
+  border-color: color-mix(in srgb, #15803D 25%, transparent);
+}
+#wc-app[data-theme="light"] .wc-banner--ok .wc-banner-icon--ok,
+#wc-app[data-theme="light"] .wc-banner--ok .wc-banner-head--ok { color: #15803D; }
+.wc-banner--risk {
+  background: color-mix(in srgb, var(--wc-status-bad) 12%, transparent);
+  border-color: color-mix(in srgb, var(--wc-status-bad) 35%, transparent);
+  color: var(--wc-text);
+}
+.wc-banner--risk .wc-banner-icon--risk { color: var(--wc-status-bad); }
+.wc-banner--risk .wc-banner-head--risk { color: var(--wc-status-bad); }
+#wc-app[data-theme="light"] .wc-banner--risk {
+  background: color-mix(in srgb, #B91C1C 8%, transparent);
+  border-color: color-mix(in srgb, #B91C1C 30%, transparent);
+}
+#wc-app[data-theme="light"] .wc-banner--risk .wc-banner-icon--risk,
+#wc-app[data-theme="light"] .wc-banner--risk .wc-banner-head--risk { color: #B91C1C; }
+.wc-banner--warn {
+  background: color-mix(in srgb, var(--wc-status-warn) 10%, transparent);
+  border-color: color-mix(in srgb, var(--wc-status-warn) 25%, transparent);
+  color: var(--wc-text);
+}
+.wc-banner--warn .wc-banner-icon--warn { color: var(--wc-status-warn); }
+.wc-banner--warn .wc-banner-head--warn { color: var(--wc-status-warn); }
+#wc-app[data-theme="light"] .wc-banner--warn {
+  background: color-mix(in srgb, #B45309 8%, transparent);
+  border-color: color-mix(in srgb, #B45309 25%, transparent);
+}
+#wc-app[data-theme="light"] .wc-banner--warn .wc-banner-icon--warn,
+#wc-app[data-theme="light"] .wc-banner--warn .wc-banner-head--warn { color: #B45309; }
+.wc-banner--info {
+  background: color-mix(in srgb, var(--wc-status-info) 10%, transparent);
+  border-color: color-mix(in srgb, var(--wc-status-info) 25%, transparent);
+  color: var(--wc-text);
+}
+.wc-banner--info .wc-banner-icon--info { color: var(--wc-status-info); }
+.wc-banner--info .wc-banner-head--info { color: var(--wc-status-info); }
+#wc-app[data-theme="light"] .wc-banner--info {
+  background: color-mix(in srgb, #0369A1 8%, transparent);
+  border-color: color-mix(in srgb, #0369A1 25%, transparent);
+}
+#wc-app[data-theme="light"] .wc-banner--info .wc-banner-icon--info,
+#wc-app[data-theme="light"] .wc-banner--info .wc-banner-head--info { color: #0369A1; }
+
+/* Empty / placeholder states */
+.wc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wc-gap-half);
+  padding: var(--wc-gap-double) var(--wc-gap);
+  border: 2px dashed var(--wc-border);
+  border-radius: var(--wc-radius-lg);
+  background: color-mix(in srgb, var(--wc-surface-2) 55%, transparent);
+  text-align: center;
+}
+.wc-empty-icon {
+  font-size: 2.25rem;
+  color: var(--wc-muted);
+  line-height: 1;
+}
+.wc-empty-message {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--wc-text);
+  margin-bottom: var(--wc-gap-half);
+}
+.wc-empty-hint {
+  font-size: 0.95rem;
+  color: var(--wc-muted);
+  max-width: 48ch;
+  line-height: 1.4;
+}
+.wc-empty-action { margin-top: var(--wc-gap); }
+
+/* Assumptions panel (Forecast page) — sliders stack with even rhythm */
+.wc-assumptions-panel .card-body { display: flex; flex-direction: column; }
+.wc-assumptions-panel .card-body > .mb-4:last-of-type { margin-bottom: 0; }
+
+/* Themed action buttons (download etc.) — no stock Bootstrap colors */
+.wc-btn {
+  font-weight: 600;
+  font-size: 0.88rem;
+  border-radius: var(--wc-radius);
+  padding: 7px 18px;
+  border: 2px solid transparent;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease,
+              border-color 120ms ease, background-color 120ms ease;
+}
+.wc-btn:hover { 
+  transform: translateY(-2px); 
+  box-shadow: var(--wc-shadow-sm);
+}
+.wc-btn:active {
+  transform: translateY(0);
+}
+.wc-btn--primary {
+  background: var(--wc-primary);
+  color: #0F172A;
+  border-color: var(--wc-primary);
+  box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+}
+#wc-app[data-theme="light"] .wc-btn--primary {
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(30,64,175,0.22);
+}
+.wc-btn--ghost {
+  background: transparent;
+  color: var(--wc-text);
+  border-color: var(--wc-border);
+}
+.wc-btn--ghost:hover {
+  border-color: var(--wc-primary);
+  color: var(--wc-primary);
+  background: color-mix(in srgb, var(--wc-primary) 8%, transparent);
+  box-shadow: none;
+}
+/* Bare (borderless, backgroundless) — e.g. the sidebar Show/Hide toggle */
+.wc-btn--bare,
+.wc-btn--bare:hover,
+.wc-btn--bare:focus,
+.wc-btn--bare:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--wc-muted);
+}
+.wc-btn--bare:hover,
+.wc-btn--bare:focus {
+  color: var(--wc-primary);
+}
+
+/* Theme-aware muted text (DARKLY forces dark-themed colors globally) */
+.wc-page .text-muted,
+#wc-app[data-theme="light"] .text-muted { color: var(--wc-muted) !important; }
+#wc-app[data-theme="dark"] .text-muted { color: #94A3B8 !important; }
+
+/* Page header — title / subtitle / meta chips */
+.wc-page-header {
+  border-bottom: 1px solid var(--wc-border);
+  padding-bottom: var(--wc-gap-half);
+  margin-bottom: var(--wc-gap);
+}
+.wc-page-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  font-size: 1.75rem;
+}
+#wc-app[data-theme="dark"] .wc-page-title { color: #F8FAFC; }
+#wc-app[data-theme="light"] .wc-page-title { color: #0F172A; }
+.wc-page-subtitle {
+  color: var(--wc-muted);
+  margin-bottom: 0;
+  max-width: 100ch;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.wc-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wc-gap-half);
+  margin-top: var(--wc-gap-half);
+}
+.wc-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  background: var(--wc-surface-2);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-pill);
+  padding: 3px 10px;
+  line-height: 1.4;
+  height: 26px;
+}
+/* Ticker field label */
+.wc-field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  margin-bottom: var(--wc-gap-half);
+}
+
+/* Cards */
+.wc-kpi-card, .wc-chart-card, .wc-section-card {
+  background: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius);
+  color: var(--wc-text);
+  box-shadow: var(--wc-shadow-xs);
+  transition: box-shadow var(--wc-transition-fast), transform var(--wc-transition-fast);
+}
+/* KPI metric tiles (Overview / Working Capital / Forecast / Scenario
+   pages) render borderless — surface + shadow carry the separation. */
+.wc-kpi-card {
+  border: none;
+}
+.wc-kpi-card:hover, .wc-chart-card:hover, .wc-section-card:hover {
+  box-shadow: var(--wc-shadow-sm);
+  transform: translateY(-1px);
+}
+.wc-kpi-card:active, .wc-chart-card:active, .wc-section-card:active {
+  transform: translateY(0);
+}
+
+/* Note: --elevated / --outline card variants were removed — no page
+   used them; elevation is handled by .bento-card shadows. */
+
+/* Insight cards — no background, no border (only text styling) */
+.wc-insight-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: var(--wc-gap-half) 0;
+  /* Card text must follow the app theme (DARKLY forces light text that
+     is invisible on the light page background) */
+  color: var(--wc-text);
+}
+.wc-insight-card .card-body {
+  padding: var(--wc-gap-half) 0;
+}
+
+/* Loading states are handled by Dash's dcc.Loading circle spinner. */
+/* Insight card titles — explicit high-contrast colors in both themes */
+.wc-insight-card strong {
+  color: #F8FAFC;
+  font-size: 0.95rem;
+}
+#wc-app[data-theme="light"] .wc-insight-card strong { color: #0F172A; }
+/* Insight card header icons — theme-aware colors */
+.wc-insight-card .text-warning { color: #F59E0B !important; }
+.wc-insight-card .text-info { color: #3498DB !important; }
+.wc-insight-card .text-success { color: #2ECC71 !important; }
+#wc-app[data-theme="light"] .wc-insight-card .text-warning { color: #B45309 !important; }
+#wc-app[data-theme="light"] .wc-insight-card .text-info { color: #0369A1 !important; }
+#wc-app[data-theme="light"] .wc-insight-card .text-success { color: #15803D !important; }
+.wc-kpi-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--wc-muted);
+  margin-bottom: 4px;
+}
+.wc-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--wc-gap-half);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wc-kpi-value {
+  font-size: 1rem;
+  line-height: 1;
+}
+.wc-kpi-delta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--wc-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.wc-kpi-delta--good { background: color-mix(in srgb, var(--wc-status-ok) 12%, transparent); }
+.wc-kpi-delta--bad { background: color-mix(in srgb, var(--wc-status-bad) 12%, transparent); }
+.wc-kpi-delta--warn { background: color-mix(in srgb, var(--wc-status-warn) 12%, transparent); }
+.wc-kpi-delta--neutral { background: color-mix(in srgb, var(--wc-muted) 12%, transparent); }
+.wc-kpi-sub {
+  font-size: 0.75rem;
+  color: var(--wc-muted);
+  margin-top: 4px;
+}
+/* Metric-tile text renders in one uniform colour per design direction:
+   black in light mode, near-white in dark (black on the dark slate
+   surface would be unreadable). This replaces the tone-coloured values;
+   the top accent bar (.wc-kpi--{tone}::before) keeps the status cue. */
+.wc-kpi-card .wc-kpi-label,
+.wc-kpi-card .wc-kpi-value,
+.wc-kpi-card .wc-kpi-delta,
+.wc-kpi-card .wc-kpi-sub {
+  color: #000000 !important;
+}
+#wc-app[data-theme="dark"] .wc-kpi-card .wc-kpi-label,
+#wc-app[data-theme="dark"] .wc-kpi-card .wc-kpi-value,
+#wc-app[data-theme="dark"] .wc-kpi-card .wc-kpi-delta,
+#wc-app[data-theme="dark"] .wc-kpi-card .wc-kpi-sub {
+  color: var(--wc-text) !important;
+}
+/* Top accent bar echoes the tone so status is scannable from a
+   distance, including for color-blind users (position + hue). */
+.wc-kpi-card { position: relative; overflow: hidden; }
+.wc-kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+}
+.wc-kpi--good::before { background: var(--wc-status-ok); }
+.wc-kpi--bad::before { background: var(--wc-status-bad); }
+.wc-kpi--warn::before { background: var(--wc-status-warn); }
+.wc-kpi--info::before { background: var(--wc-status-info); }
+#wc-app[data-theme="light"] .wc-kpi--good::before { background: #15803D; }
+#wc-app[data-theme="light"] .wc-kpi--bad::before { background: #B91C1C; }
+#wc-app[data-theme="light"] .wc-kpi--warn::before { background: #B45309; }
+#wc-app[data-theme="light"] .wc-kpi--info::before { background: #0369A1; }
+.wc-tone-good { color: var(--wc-status-ok); }
+.wc-tone-bad { color: var(--wc-status-bad); }
+.wc-tone-warn { color: var(--wc-status-warn); }
+.wc-tone-info { color: var(--wc-status-info); }
+#wc-app[data-theme="light"] .wc-tone-good { color: #15803D; }
+#wc-app[data-theme="light"] .wc-tone-bad { color: #B91C1C; }
+#wc-app[data-theme="light"] .wc-tone-warn { color: #B45309; }
+#wc-app[data-theme="light"] .wc-tone-info { color: #0369A1; }
+
+.wc-card-header {
+  background: var(--wc-surface-2);
+  border-bottom: 1px solid var(--wc-border);
+}
+.wc-card-header--bento {
+  padding: var(--wc-gap) var(--wc-gap);
+  background: var(--wc-surface-2);
+  border-bottom: 1px solid var(--wc-border);
+}
+.wc-chart-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--wc-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid var(--wc-border);
+}
+.wc-chart-icon--ocf {
+  background: rgba(245,158,11,0.12);
+  color: #F59E0B;
+  border-color: rgba(245,158,11,0.22);
+}
+.wc-chart-icon--ccc {
+  background: rgba(52,152,219,0.12);
+  color: #3498DB;
+  border-color: rgba(52,152,219,0.22);
+}
+.wc-chart-icon--neutral {
+  background: rgba(139,92,246,0.12);
+  color: #8B5CF6;
+  border-color: rgba(139,92,246,0.22);
+}
+.wc-chart-icon--sliders {
+  background: rgba(245,158,11,0.12);
+  color: #F59E0B;
+  border-color: rgba(245,158,11,0.22);
+}
+#wc-app[data-theme="light"] .wc-chart-icon--ocf {
+  background: rgba(30,64,175,0.08);
+  color: #1E40AF;
+  border-color: rgba(30,64,175,0.14);
+}
+#wc-app[data-theme="light"] .wc-chart-icon--ccc {
+  background: rgba(14,165,233,0.10);
+  color: #0E7490;
+  border-color: rgba(14,165,233,0.18);
+}
+#wc-app[data-theme="light"] .wc-chart-icon--neutral {
+  background: rgba(124,58,237,0.10);
+  color: #6D28D9;
+  border-color: rgba(124,58,237,0.18);
+}
+#wc-app[data-theme="light"] .wc-chart-icon--sliders {
+  background: rgba(180,83,9,0.10);
+  color: #B45309;
+  border-color: rgba(180,83,9,0.18);
+}
+.wc-chart-title {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--wc-text);
+  margin-bottom: 2px;
+}
+.wc-chart-subtitle {
+  font-size: 0.875rem;
+  color: var(--wc-muted);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.wc-chart-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  background: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-pill);
+  padding: 3px 8px;
+}
+.bento-card {
+  border-radius: var(--wc-radius-lg) !important;
+  overflow: hidden;
+  box-shadow: var(--wc-shadow);
+}
+#wc-app[data-theme="light"] .bento-card {
+  box-shadow: 0 1px 3px rgba(15,23,42,0.07), 0 8px 24px rgba(15,23,42,0.05);
+}
+/* Plain single-colour card background — used by panel_card and chart_card_with_header
+   on every page so no card falls back to a darker framework default. */
+.wc-surface-card {
+  background: var(--wc-surface) !important;
+  border-color: var(--wc-border) !important;
+}
+.wc-section-title { font-weight: 600; }
+.wc-section-subtitle { font-size: 0.875rem; color: var(--wc-muted); }
+
+/* Modern Bento table — Raw Historical Data */
+.wc-table-modern {
+  font-size: 0.875rem;
+  --bs-table-bg: transparent;
+}
+.wc-table-modern thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wc-table-header-color);
+  background: var(--wc-table-header-bg) !important;
+  border-bottom: 1px solid var(--wc-table-border-color);
+  padding: var(--wc-gap-half) var(--wc-gap);
+  white-space: nowrap;
+  vertical-align: middle;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.wc-table-modern tbody td {
+  padding: var(--wc-gap-half) var(--wc-gap);
+  border-top: 1px solid var(--wc-table-border-color);
+  vertical-align: middle;
+}
+.wc-table-modern tbody tr:hover td {
+  background: var(--wc-table-hover-bg);
+}
+.wc-fy-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  padding: 2px 8px;
+  border-radius: var(--wc-radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--wc-surface-2);
+  border: 1px solid var(--wc-border);
+  color: var(--wc-text);
+  line-height: 1.2;
+}
+.wc-table-wrap {
+  border-radius: var(--wc-radius);
+  overflow: hidden;
+  border: 1px solid var(--wc-border);
+}
+.wc-table-wrap .table-responsive { margin-bottom: 0; }
+
+/* Tables: keep readable in both themes */
+#wc-app[data-theme="light"] .table {
+  --bs-table-bg: #FFFFFF;
+  --bs-table-color: #0F172A;
+  --bs-table-border-color: #CBD5E1;
+}
+#wc-app[data-theme="light"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: #F1F5F9;
+}
+
+/* Dash 4 dcc.Dropdown theming.
+   Dash 4 renders Dropdown with `dash-dropdown-*` classes styled via
+   `--Dash-*` CSS variables (light defaults on :root). DARKLY also forces
+   light body text, which bled into the white control and made the value
+   unreadable. Overriding the variables per app theme fixes the trigger,
+   the menu, and the search box (the menu portals inside the dropdown
+   wrapper, so #wc-app scope reaches it). */
+#wc-app[data-theme="dark"] {
+  --Dash-Fill-Inverse-Strong: #1E293B;
+  --Dash-Text-Primary: rgba(248, 250, 252, 0.92);
+  --Dash-Text-Strong: #F8FAFC;
+  --Dash-Text-Weak: #94A3B8;
+  --Dash-Text-Disabled: rgba(148, 163, 184, 0.6);
+  --Dash-Stroke-Strong: #475569;
+  --Dash-Stroke-Weak: rgba(148, 163, 184, 0.2);
+  --Dash-Fill-Interactive-Strong: #F59E0B;
+  --Dash-Fill-Interactive-Weak: rgba(245, 158, 11, 0.12);
+  --Dash-Fill-Primary-Hover: rgba(148, 163, 184, 0.14);
+  --Dash-Fill-Primary-Active: rgba(148, 163, 184, 0.22);
+  --Dash-Fill-Disabled: rgba(148, 163, 184, 0.15);
+  --Dash-Shading-Strong: rgba(0, 0, 0, 0.55);
+  --Dash-Shading-Weak: rgba(0, 0, 0, 0.35);
+}
+#wc-app[data-theme="light"] {
+  --Dash-Fill-Inverse-Strong: #FFFFFF;
+  --Dash-Text-Primary: rgba(15, 23, 42, 0.87);
+  --Dash-Text-Strong: #0F172A;
+  --Dash-Text-Weak: #64748B;
+  --Dash-Text-Disabled: rgba(100, 116, 139, 0.6);
+  --Dash-Stroke-Strong: #94A3B8;
+  --Dash-Stroke-Weak: rgba(100, 116, 139, 0.25);
+  --Dash-Fill-Interactive-Strong: #1E40AF;
+  --Dash-Fill-Interactive-Weak: rgba(30, 64, 175, 0.07);
+  --Dash-Fill-Primary-Hover: rgba(15, 23, 42, 0.05);
+  --Dash-Fill-Primary-Active: rgba(15, 23, 42, 0.1);
+  --Dash-Fill-Disabled: rgba(100, 116, 139, 0.15);
+  --Dash-Shading-Strong: rgba(15, 23, 42, 0.3);
+  --Dash-Shading-Weak: rgba(15, 23, 42, 0.18);
+}
+/* Keep dropdown text from inheriting DARKLY's body color */
+#wc-app .dash-dropdown-trigger,
+#wc-app .dash-dropdown-value,
+#wc-app .dash-dropdown-option {
+  color: var(--Dash-Text-Strong);
+}
+#wc-app .dash-dropdown-placeholder,
+#wc-app .dash-dropdown-search {
+  color: var(--Dash-Text-Weak);
+}
+/* Ticker / country list — vertical alignment (dense) */
+#wc-app .dash-dropdown-trigger,
+#wc-app .dash-dropdown-value,
+#wc-app .dash-dropdown-option {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  line-height: 1.35;
+}
+#wc-app .dash-dropdown-option {
+  padding: 6px 12px;
+  gap: 8px;
+}
+#wc-app .dash-dropdown-menu {
+  padding: 4px 0;
+}
+
+/* Assumption-panel form controls are styled by Bootstrap's form classes;
+   the panel only needs layout overrides. */
+.wc-assumptions-panel .form-range { margin-top: var(--wc-gap-half); }
+
+/* Forecast slider — value badge */
+.slider-val-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wc-primary);
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.22);
+  border-radius: var(--wc-radius-pill);
+  padding: 2px 10px;
+  min-width: 40px;
+  text-align: center;
+  display: inline-block;
+}
+#wc-app[data-theme="light"] .slider-val-badge {
+  background: rgba(30,64,175,0.08);
+  border-color: rgba(30,64,175,0.18);
+}
+
+/* Forecast page cards — match page entry animation */
+.wc-page .bento-card,
+.wc-page .wc-section-card {
+  animation: wcPageIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Page elements entrance — smooth motion on load (ui-ux-pro-max subtle) */
+@keyframes wcPageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wc-page {
+  animation: wcPageIn 280ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  will-change: opacity, transform;
+}
+.wc-page .wc-kpi-card,
+.wc-page .wc-chart-card,
+.wc-page .wc-section-card {
+  animation: wcPageIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.wc-page .wc-kpi-card:nth-child(1) { animation-delay: 40ms; }
+.wc-page .wc-kpi-card:nth-child(2) { animation-delay: 80ms; }
+.wc-page .wc-kpi-card:nth-child(3) { animation-delay: 120ms; }
+.wc-page .wc-kpi-card:nth-child(4) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  .wc-page,
+  .wc-page .wc-kpi-card,
+  .wc-page .wc-chart-card,
+  .wc-page .wc-section-card { animation: none !important; }
+}
+
+/* Loading spinner — Dash's dcc.Loading(type="circle") is themed via
+   the component itself; only the keyframes live here. */
+@keyframes wcSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Alert banner variants — wc-banner replaces the legacy .wc-alert classes */
+
+/* Form elements */
+.wc-form-control {
+  display: block;
+  width: 100%;
+  padding: var(--wc-gap-half) var(--wc-gap);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--wc-text);
+  background-color: var(--wc-surface);
+  background-clip: padding-box;
+  border: 1px solid var(--wc-border);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: var(--wc-radius);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.wc-form-control:focus {
+  border-color: var(--wc-primary);
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+}
+.wc-form-control:-moz-placeholder {
+  color: var(--wc-muted);
+  opacity: 1;
+}
+.wc-form-control::placeholder {
+  color: var(--wc-muted);
+}
+
+/* Checkbox and radio */
+.wc-form-check-input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.25em;
+  vertical-align: top;
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.wc-form-check-input:checked {
+  background-color: var(--wc-primary);
+  border-color: var(--wc-primary);
+}
+.wc-form-check-input:focus {
+  border-color: var(--wc-primary);
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+}
+.wc-form-check-input:disabled {
+  background-color: var(--wc-surface-2);
+}
+
+/* Scrollbar (for webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--wc-surface-2);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--wc-muted);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--wc-text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .wc-page-title {
+    font-size: 1.5rem;
+  }
+  .wc-page-subtitle {
+    font-size: 1rem;
+  }
+  .wc-kpi-value {
+    font-size: 1.375rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  #wc-app {
+    background: white !important;
+    color: #000 !important;
+  }
+  .wc-sidebar { display: none !important; }
+  .wc-card, .bento-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+}

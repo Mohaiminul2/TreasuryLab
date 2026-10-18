@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="TreasuryLab shield logo (light theme)">
+  <title>TreasuryLab</title>
+  <!-- Light-theme variant: app primary #1E40AF, trend line in surface white -->
+  <path d="M256 48 L416 104 V256 C416 352 344 424 256 464 C168 424 96 352 96 256 V104 Z"
+        fill="#1E40AF"
+        stroke="#1E40AF"
+        stroke-width="28"
+        stroke-linejoin="round"/>
+  <polyline points="156,332 216,280 266,306 344,200"
+            fill="none"
+            stroke="#F8FAFC"
+            stroke-width="22"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+  <circle cx="156" cy="332" r="16" fill="#F8FAFC"/>
+  <circle cx="216" cy="280" r="16" fill="#F8FAFC"/>
+  <circle cx="266" cy="306" r="16" fill="#F8FAFC"/>
+  <circle cx="344" cy="200" r="16" fill="#F8FAFC"/>
+</svg>

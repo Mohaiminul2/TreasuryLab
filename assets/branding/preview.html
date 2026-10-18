@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TreasuryLab — Brand Asset Preview</title>
+<style>
+  :root {
+    --amber: #F59E0B;
+    --blue: #1E40AF;
+    --slate-900: #0F172A;
+    --slate-800: #1E293B;
+    --slate-500: #64748B;
+    --slate-400: #94A3B8;
+    --slate-100: #F1F5F9;
+    --slate-50: #F8FAFC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .section { padding: 48px 64px; }
+  .section.dark { background: var(--slate-900); }
+  .section.light { background: var(--slate-100); }
+  .section h2 {
+    font-size: 13px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; margin-bottom: 28px;
+  }
+  .dark h2 { color: var(--slate-400); }
+  .light h2 { color: var(--slate-500); }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: stretch; }
+  .card {
+    border-radius: 16px; padding: 32px; flex: 1 1 300px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; min-height: 260px;
+  }
+  .dark .card { background: var(--slate-800); border: 1px solid #334155; }
+  .light .card { background: #FFFFFF; border: 1px solid #E2E8F0; }
+  .card img { display: block; }
+  .card .caption { font-size: 12px; text-align: center; }
+  .dark .caption { color: var(--slate-400); }
+  .light .caption { color: var(--slate-500); }
+  .sizes { display: flex; align-items: flex-end; gap: 32px; }
+  .size-item { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .favicon-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+    padding: 8px 14px; border-radius: 8px;
+  }
+  .dark .favicon-row { background: var(--slate-900); }
+  .light .favicon-row { background: var(--slate-100); }
+  .favicon-row .fake-tab { font-size: 12px; }
+  .dark .fake-tab { color: var(--slate-100); }
+  .light .fake-tab { color: var(--slate-900); }
+</style>
+</head>
+<body>
+
+  <section class="section dark">
+    <h2>Dark theme (app default) — amber on slate</h2>
+    <div class="row">
+      <div class="card">
+        <img src="treasurylab-shield.svg" width="180" height="180" alt="Shield master">
+        <div class="caption">Master shield · SVG</div>
+      </div>
+      <div class="card">
+        <img src="treasurylab-lockup.svg" width="520" alt="Lockup dark">
+        <div class="caption">Horizontal lockup · SVG</div>
+      </div>
+      <div class="card">
+        <div class="sizes">
+          <div class="size-item"><img src="treasurylab-shield-512px.png" width="96" height="96" alt="512"><div class="caption">512px</div></div>
+          <div class="size-item"><img src="treasurylab-shield-64px.png" width="64" height="64" alt="64"><div class="caption">64px</div></div>
+          <div class="size-item"><img src="treasurylab-shield-32px.png" width="32" height="32" alt="32"><div class="caption">32px</div></div>
+        </div>
+        <div class="caption">PNG exports (transparent)</div>
+        <div class="favicon-row">
+          <img src="treasurylab-shield-32px.png" width="16" height="16" alt="">
+          <span class="fake-tab">TreasuryLab — Working Capital & Cash Flow</span>
+        </div>
+        <div class="caption">Browser tab simulation</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section light">
+    <h2>Light theme — blue on slate-100</h2>
+    <div class="row">
+      <div class="card">
+        <img src="treasurylab-shield-light.svg" width="180" height="180" alt="Shield light">
+        <div class="caption">Shield variant · SVG</div>
+      </div>
+      <div class="card">
+        <img src="treasurylab-lockup-light.svg" width="520" alt="Lockup light">
+        <div class="caption">Horizontal lockup · SVG</div>
+      </div>
+      <div class="card">
+        <img src="treasurylab-lockup-light-1560px.png" width="390" alt="Lockup light PNG">
+        <div class="caption">Lockup PNG · 1560&times;450 (README-ready)</div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="TreasuryLab shield logo">
+  <title>TreasuryLab</title>
+  <!-- Shield silhouette: geometric, rounded joins echo the app's 12px radius tokens -->
+  <path d="M256 48 L416 104 V256 C416 352 344 424 256 464 C168 424 96 352 96 256 V104 Z"
+        fill="#F59E0B"
+        stroke="#F59E0B"
+        stroke-width="28"
+        stroke-linejoin="round"/>
+  <!-- Ascending trend line: echoes the dashboard's line charts; nodes mark fiscal periods -->
+  <polyline points="156,332 216,280 266,306 344,200"
+            fill="none"
+            stroke="#0F172A"
+            stroke-width="22"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+  <circle cx="156" cy="332" r="16" fill="#0F172A"/>
+  <circle cx="216" cy="280" r="16" fill="#0F172A"/>
+  <circle cx="266" cy="306" r="16" fill="#0F172A"/>
+  <circle cx="344" cy="200" r="16" fill="#0F172A"/>
+</svg>
